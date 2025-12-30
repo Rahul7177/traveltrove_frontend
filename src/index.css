@@ -8,6 +8,10 @@ body {
   font-family: 'Poppins', 'Roboto', 'Helvetica', 'Arial', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #F8F8FF;
+  /* Ghost White */
+  color: #1A1A1A;
+  /* Jet Black */
 }
 
 /* Smooth scrolling */
@@ -80,8 +84,7 @@ html {
 
 /* Hero background - Earthy */
 .hero-gradient {
-  background: #4A5D4F;
-  /* Dark Olive */
+  background-color: #1A1A1A;
 }
 
 /* Card hover effects */
@@ -98,34 +101,29 @@ html {
 /* Glass morphism - Adjusted for warmer feel */
 /* Glass morphism - Adjusted for warmer feel, removed white */
 .glass {
-  background: rgba(249, 247, 242, 0.9);
-  /* #F9F7F2 with opacity */
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(74, 93, 79, 0.1);
-  /* Olive border */
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 /* Accent text - Terracotta */
 .gradient-text {
-  color: #D97059;
-  background: none;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: initial;
+  color: #FF6B6B;
+  /* Solid Coral */
 }
 
 /* Scrapbook Paper Texture */
 .paper-texture {
-  background-color: #F9F7F2;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  background-color: #F8F8FF;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
 /* Torn Paper Effect */
 .torn-paper {
   position: relative;
-  background-color: #F9F7F2;
+  background-color: #FFFFFF;
   /* theme.background.paper */
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
 
   /* Jagged edges using clip-path - irregular polygon */
   clip-path: polygon(0% 10px,

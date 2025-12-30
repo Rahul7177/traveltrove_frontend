@@ -23,6 +23,7 @@ import SearchBar from '../components/SearchBar';
 import GuideCard from '../components/GuideCard';
 import ItineraryCard from '../components/ItineraryCard';
 import { guidesAPI, itinerariesAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const categories = [
     { name: 'Adventure', icon: <Hiking />, color: '#ef4444' },
@@ -33,6 +34,7 @@ const categories = [
 ];
 
 export default function Home() {
+    const { isAuthenticated } = useAuth();
     const [guides, setGuides] = useState([]);
     const [itineraries, setItineraries] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -61,10 +63,15 @@ export default function Home() {
                 sx={{
                     position: 'relative',
                     color: 'white',
-                    py: { xs: 8, md: 12 },
-                    px: 2,
+                    height: 'calc(100vh - 64px)',
+                    minHeight: '400px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    px: { xs: 1, sm: 2 },
+                    py: { xs: 2, sm: 4 },
                     overflow: 'hidden',
-                    // No background gradient, letting video show
                 }}
             >
                 {/* Video Background */}
@@ -82,25 +89,42 @@ export default function Home() {
                         height: '100%',
                         objectFit: 'cover',
                         zIndex: 0,
-                        filter: 'brightness(0.4)', // Lower brightness as requested
+                        filter: 'brightness(0.4)',
                     }}
                 >
                     <source src="/videos/DroneShot.mp4" type="video/mp4" />
                 </Box>
 
-                <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-                    <Box sx={{ textAlign: 'center', maxWidth: 800, mx: 'auto', mb: 4 }}>
+                <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1, px: { xs: 2, sm: 3 } }}>
+                    <Box sx={{ textAlign: 'center', maxWidth: { xs: '100%', sm: 800 }, mx: 'auto', mb: { xs: 2, sm: 4 } }}>
                         <Typography
                             variant="h2"
                             component="h1"
                             fontWeight="bold"
-                            sx={{ mb: 2, fontSize: { xs: '2rem', md: '3.5rem' }, color: 'white' }}
+                            sx={{
+                                mb: { xs: 1, sm: 2 },
+                                fontSize: {
+                                    xs: '1.5rem',
+                                    sm: '2rem',
+                                    md: '3.5rem'
+                                },
+                                color: 'white',
+                                lineHeight: 1.2
+                            }}
                         >
                             Discover Your Next Adventure
                         </Typography>
                         <Typography
                             variant="h6"
-                            sx={{ opacity: 0.9, mb: 4, fontWeight: 400, color: 'white' }}
+                            sx={{
+                                opacity: 0.9,
+                                mb: { xs: 2, sm: 4 },
+                                fontWeight: 400,
+                                color: 'white',
+                                fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' },
+                                display: { xs: 'none', sm: 'block' },
+                                px: { xs: 1, sm: 0 }
+                            }}
                         >
                             Explore curated destination guides and create personalized trip itineraries
                             for unforgettable travel experiences.
@@ -111,7 +135,7 @@ export default function Home() {
                     </Box>
 
                     {/* Category Quick Links */}
-                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap', mt: 4 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: { xs: 1, sm: 2 }, flexWrap: 'wrap', mt: { xs: 2, sm: 4 } }}>
                         {categories.map((cat) => (
                             <Chip
                                 key={cat.name}
@@ -121,13 +145,25 @@ export default function Home() {
                                 to={`/search?category=${cat.name}`}
                                 clickable
                                 sx={{
-                                    bgcolor: 'rgba(255,255,255,0.2)',
+                                    bgcolor: cat.color,
                                     color: 'white',
-                                    fontSize: '0.9rem',
-                                    py: 2.5,
-                                    px: 1,
-                                    '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
-                                    '& .MuiChip-icon': { color: 'white' },
+                                    fontWeight: 'bold',
+                                    fontSize: { xs: '0.75rem', sm: '0.95rem' },
+                                    py: { xs: 2, sm: 3 },
+                                    px: { xs: 1, sm: 2 },
+                                    boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                                    transition: 'transform 0.2s',
+                                    '&:hover': {
+                                        bgcolor: cat.color,
+                                        filter: 'brightness(1.1)',
+                                        transform: 'translateY(-3px)'
+                                    },
+                                    '& .MuiChip-icon': {
+                                        color: 'white',
+                                        fontSize: { xs: '16px', sm: '20px' },
+                                        marginLeft: { xs: '4px', sm: '8px' },
+                                        marginRight: { xs: '-4px', sm: '-2px' }
+                                    },
                                 }}
                             />
                         ))}
@@ -136,7 +172,7 @@ export default function Home() {
             </Box>
 
             {/* Featured Destinations */}
-            <Container maxWidth="lg" sx={{ py: 8 }}>
+            <Container maxWidth="lg" sx={{ py: { xs: 4, sm: 6, md: 8 }, px: { xs: 2, sm: 3 } }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
                     <Box>
                         <Typography variant="h4" fontWeight="bold" gutterBottom>
@@ -151,6 +187,17 @@ export default function Home() {
                         to="/search"
                         variant="outlined"
                         endIcon={<TrendingUp />}
+                        sx={{
+                            borderColor: 'secondary.main',
+                            color: 'secondary.main',
+                            borderWidth: 2,
+                            px: 3,
+                            '&:hover': {
+                                backgroundColor: 'secondary.main',
+                                color: 'white',
+                                borderColor: 'secondary.main'
+                            }
+                        }}
                     >
                         View All
                     </Button>
@@ -173,19 +220,19 @@ export default function Home() {
 
             {/* Popular Itineraries */}
             {itineraries.length > 0 && (
-                <Box sx={{ py: 8 }}> {/* Removed bg color here */}
+                <Box sx={{ py: 8, backgroundColor: 'background.paper' }}> {/* Removed bg color here */}
                     <Box sx={{
                         maxWidth: '70%',
                         mx: 'auto',
                         filter: 'drop-shadow(3px 5px 2px rgba(0,0,0,0.15))' // Drop shadow on wrapper because clip-path clips shadow
                     }}>
-                        <Box className="torn-paper" sx={{ p: 6 }}>
+                        <Box className="torn-paper" sx={{ p: 6, backgroundColor: 'secondary.main' }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
                                 <Box>
-                                    <Typography variant="h4" fontWeight="bold" gutterBottom>
+                                    <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: 'white' }}>
                                         Popular Trip Plans
                                     </Typography>
-                                    <Typography color="text.secondary">
+                                    <Typography color="text.secondary" sx={{ color: 'white' }}>
                                         Get inspired by itineraries created by fellow travelers
                                     </Typography>
                                 </Box>
@@ -193,7 +240,7 @@ export default function Home() {
                                     component={RouterLink}
                                     to="/create-itinerary"
                                     variant="contained"
-                                    color="secondary"
+                                    color="primary"
                                 >
                                     Create Your Own
                                 </Button>
@@ -258,7 +305,7 @@ export default function Home() {
             {/* CTA Section */}
             <Box
                 sx={{
-                    background: 'linear-gradient(135deg, #2C3630 0%, #1A211D 100%)',
+                    background: 'linear-gradient(135deg, #ff5858 0%, #C63939 100%)', // Vibrant Coral Gradient
                     color: 'white',
                     py: 8,
                     textAlign: 'center',
@@ -274,7 +321,7 @@ export default function Home() {
                     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
                         <Button
                             component={RouterLink}
-                            to="/register"
+                            to={isAuthenticated ? "/" : "/register"}
                             variant="contained"
                             color="primary"
                             size="large"

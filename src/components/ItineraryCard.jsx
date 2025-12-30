@@ -86,11 +86,17 @@ export default function ItineraryCard({ itinerary, onSaveToggle, showCreator = t
         <Card
             sx={{
                 height: '100%',
-                display: 'flex',
+                display: 'flex', // Added to ensure flex behavior
                 flexDirection: 'column',
                 cursor: 'pointer',
-                background: 'linear-gradient(135deg, #B96D57 0%, #8C4A36 100%)',
+                backgroundColor: '#1A1A1A', // Explicit Jet Black
                 color: 'white',
+                border: '1px solid rgba(255,255,255,0.1)',
+                transition: 'transform 0.2s',
+                '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: '0 8px 16px rgba(0,0,0,0.5)',
+                }
             }}
             component={RouterLink}
             to={`/itineraries/${itinerary._id}`}
@@ -99,41 +105,44 @@ export default function ItineraryCard({ itinerary, onSaveToggle, showCreator = t
             <CardContent sx={{ flexGrow: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                     <Box>
-                        <Typography variant="h6" component="h3" fontWeight="bold" gutterBottom sx={{ color: 'inherit' }}>
+                        <Typography variant="h6" component="h3" fontWeight="bold" gutterBottom sx={{ color: 'secondary.main' }}>
                             {itinerary.title}
                         </Typography>
-                        <Typography variant="body2" sx={{ opacity: 0.9, color: 'inherit' }}>
+                        <Typography variant="body2" sx={{ opacity: 0.9, color: 'white' }}>
                             {itinerary.destination}
                         </Typography>
                     </Box>
                     <Tooltip title={itinerary.isPublic ? 'Public' : 'Private'}>
                         {itinerary.isPublic ? (
-                            <Public fontSize="small" sx={{ opacity: 0.8 }} />
+                            <Public fontSize="small" sx={{ opacity: 0.8, color: 'white' }} />
                         ) : (
-                            <Lock fontSize="small" sx={{ opacity: 0.8 }} />
+                            <Lock fontSize="small" sx={{ opacity: 0.8, color: 'white' }} />
                         )}
                     </Tooltip>
                 </Box>
 
-                <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', gap: { xs: 1, sm: 2 }, mb: 2, flexWrap: 'wrap' }}>
                     <Chip
-                        icon={<CalendarMonth sx={{ color: 'white' }} />}
+                        icon={<CalendarMonth sx={{ color: 'secondary.main !important' }} />}
                         label={`${itinerary.durationDays} days`}
                         size="small"
                         sx={{
-                            bgcolor: 'rgba(255,255,255,0.2)',
-                            color: 'white',
-                            '& .MuiChip-icon': { color: 'white' },
+                            bgcolor: 'rgba(255, 107, 107, 0.15)',
+                            color: 'secondary.main',
+                            fontWeight: 600,
+                            fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                            '& .MuiChip-icon': { color: 'secondary.main' },
                         }}
                     />
                     {itinerary.budget?.amount && (
                         <Chip
-                            icon={<AttachMoney sx={{ color: 'inherit !important' }} />}
+                            icon={<AttachMoney sx={{ color: 'white !important' }} />}
                             label={`${itinerary.budget.amount} ${itinerary.budget.currency}`}
                             size="small"
                             sx={{
-                                bgcolor: 'rgba(255,255,255,0.2)',
+                                bgcolor: 'rgba(255,255,255,0.1)',
                                 color: 'white',
+                                fontSize: { xs: '0.7rem', sm: '0.8rem' },
                                 '& .MuiChip-icon': { color: 'white' },
                             }}
                         />
@@ -141,13 +150,13 @@ export default function ItineraryCard({ itinerary, onSaveToggle, showCreator = t
                 </Box>
 
                 {itinerary.startDate && (
-                    <Typography variant="body2" sx={{ opacity: 0.8, color: 'white' }}>
+                    <Typography variant="body2" sx={{ opacity: 0.9, color: 'secondary.main', fontWeight: 500 }}>
                         {formatDate(itinerary.startDate)} - {formatDate(itinerary.endDate)}
                     </Typography>
                 )}
 
                 {showCreator && itinerary.creator && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, pt: 2, borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, pt: 2, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                         <Avatar
                             src={itinerary.creator.profilePicture}
                             sx={{ width: 24, height: 24, mr: 1 }}

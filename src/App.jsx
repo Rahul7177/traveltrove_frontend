@@ -19,6 +19,7 @@ import Groups from './pages/Groups';
 import GroupDetails from './pages/GroupDetails';
 import CreateGroup from './pages/CreateGroup';
 import AdminDashboard from './pages/AdminDashboard';
+import ItinerariesList from './pages/ItinerariesList';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, adminOnly = false }) => {
@@ -53,6 +54,7 @@ function App() {
                     <Route path="/" element={<Home />} />
                     <Route path="/search" element={<SearchResults />} />
                     <Route path="/guides/:id" element={<GuideDetails />} />
+                    <Route path="/itineraries" element={<ItinerariesList />} />
                     <Route path="/itineraries/:id" element={<ItineraryDetails />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />

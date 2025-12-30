@@ -34,8 +34,8 @@ export default function Footer() {
         <Box
             component="footer"
             sx={{
-                bgcolor: 'grey.900',
-                color: 'grey.300',
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
                 py: 6,
                 mt: 'auto',
             }}
@@ -45,8 +45,8 @@ export default function Footer() {
                     {/* Brand */}
                     <Grid item xs={12} md={3}>
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                            <Explore sx={{ mr: 1, color: 'primary.light' }} />
-                            <Typography variant="h6" color="white" fontWeight="bold">
+                            <Explore sx={{ mr: 1, color: 'secondary.main' }} />
+                            <Typography variant="h6" color="inherit" fontWeight="bold">
                                 TravelTrove
                             </Typography>
                         </Box>
@@ -55,16 +55,16 @@ export default function Footer() {
                             destination guides and create custom trip itineraries.
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 1 }}>
-                            <IconButton size="small" sx={{ color: 'grey.400', '&:hover': { color: 'primary.light' } }}>
+                            <IconButton size="small" sx={{ color: 'grey.400', '&:hover': { color: 'secondary.main' } }}>
                                 <Facebook />
                             </IconButton>
-                            <IconButton size="small" sx={{ color: 'grey.400', '&:hover': { color: 'primary.light' } }}>
+                            <IconButton size="small" sx={{ color: 'grey.400', '&:hover': { color: 'secondary.main' } }}>
                                 <Twitter />
                             </IconButton>
-                            <IconButton size="small" sx={{ color: 'grey.400', '&:hover': { color: 'primary.light' } }}>
+                            <IconButton size="small" sx={{ color: 'grey.400', '&:hover': { color: 'secondary.main' } }}>
                                 <Instagram />
                             </IconButton>
-                            <IconButton size="small" sx={{ color: 'grey.400', '&:hover': { color: 'primary.light' } }}>
+                            <IconButton size="small" sx={{ color: 'grey.400', '&:hover': { color: 'secondary.main' } }}>
                                 <LinkedIn />
                             </IconButton>
                         </Box>
@@ -126,7 +126,7 @@ export default function Footer() {
                         <Typography variant="body2" sx={{ mb: 1 }}>
                             Have questions? We'd love to hear from you.
                         </Typography>
-                        <Typography variant="body2" color="primary.light">
+                        <Typography variant="body2" color="secondary.main">
                             support@traveltrove.com
                         </Typography>
                         <Typography variant="body2" sx={{ mt: 2 }}>

@@ -72,7 +72,7 @@ export default function Register() {
                 minHeight: '80vh',
                 display: 'flex',
                 alignItems: 'center',
-                background: 'linear-gradient(135deg, #4A5D4F 0%, #2C3630 100%)',
+                background: 'linear-gradient(135deg, #ff5858 0%, #87CEEB 100%)',
                 py: 4,
             }}
         >

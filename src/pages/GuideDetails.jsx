@@ -116,6 +116,17 @@ const getQuickFacts = (guide) => {
     return facts;
 };
 
+const getCategoryColor = (category) => {
+    switch (category) {
+        case 'Adventure': return 'warning'; // Lime Yellow
+        case 'Leisure': return 'error'; // Pink
+        case 'Cultural': return 'info'; // Sky Blue
+        case 'Nature': return 'success'; // Light Green
+        case 'Urban': return 'primary'; // Jet Black (or maybe secondary?) User said "etc". Let's use primary (Black) for Urban or Secondary.
+        default: return 'primary';
+    }
+};
+
 export default function GuideDetails() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -257,10 +268,8 @@ export default function GuideDetails() {
             {/* Hero Image / Carousel */}
             <Box
                 sx={{
-                    height: 400,
+                    height: 'calc(100vh - 64px)', // Full screen minus navbar
                     position: 'relative',
-                    display: 'flex',
-                    alignItems: 'flex-end',
                     color: 'white',
                     overflow: 'hidden',
                 }}
@@ -275,7 +284,7 @@ export default function GuideDetails() {
                             left: 0,
                             right: 0,
                             bottom: 0,
-                            backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url(${img})`,
+                            backgroundImage: `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.6)), url(${img})`, // Lighter gradient
                             backgroundSize: 'cover',
                             backgroundPosition: 'center',
                             opacity: index === currentImageIndex ? 1 : 0,
@@ -321,78 +330,137 @@ export default function GuideDetails() {
                     </>
                 )}
 
-                <Container maxWidth="lg" sx={{ pb: 4, width: '100%', position: 'relative', zIndex: 1 }}>
-                    <Box
+                {/* Top Left: Back Button - Absolute Positioned */}
+                <Box sx={{ position: 'absolute', top: 20, left: 20, zIndex: 10 }}>
+                    <Button
+                        startIcon={<ArrowBack />}
+                        onClick={() => navigate(-1)}
                         sx={{
-                            bgcolor: 'rgba(255, 255, 255, 0.35)', // More translucent
-                            backdropFilter: 'blur(12px)', // Increased blur for readability
-                            borderRadius: 3, // Slightly less rounded
-                            p: 2, // More compact padding
-                            width: 'fit-content', // Don't span full width
-                            maxWidth: '100%',
-                            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.1)',
+                            color: 'white',
+                            fontWeight: 'bold',
+                            bgcolor: 'rgba(0,0,0,0.3)',
+                            '&:hover': { bgcolor: 'rgba(0,0,0,0.5)' },
+                            backdropFilter: 'blur(4px)',
+                            px: 2,
+                            borderRadius: 8
                         }}
                     >
-                        <Button
-                            startIcon={<ArrowBack />}
-                            onClick={() => navigate(-1)}
-                            sx={{ mb: 2, pl: 0, color: 'text.primary' }}
-                        >
-                            Back
-                        </Button>
-                        <Box sx={{ mb: 2 }}>
-                            <Chip label={guide.category} color="primary" />
-                        </Box>
+                        Back
+                    </Button>
+                </Box>
 
-                        <Typography variant="h3" fontWeight="bold" gutterBottom sx={{ color: 'text.primary' }}>
-                            {guide.title}
-                        </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', color: 'text.secondary' }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <LocationOn sx={{ mr: 0.5 }} />
-                                <Typography fontWeight="medium">
-                                    {guide.location?.city}, {guide.location?.country}
+                {/* Bottom Translucent Bar */}
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        zIndex: 10,
+                        background: 'linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.5) 80%, transparent 100%)',
+                        pt: 8,
+                        pb: 3
+                    }}
+                >
+                    <Container maxWidth="lg">
+                        <Box sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'flex-end',
+                            gap: 3,
+                            flexWrap: 'wrap'
+                        }}>
+                            {/* Left Side: Info */}
+                            <Box sx={{ flex: 1, minWidth: '300px' }}>
+                                <Chip
+                                    label={guide.category}
+                                    size="small"
+                                    sx={{
+                                        fontWeight: 'bold',
+                                        bgcolor: getCategoryColor(guide.category) + '.main',
+                                        color: 'white',
+                                        mb: 1,
+                                        height: 24
+                                    }}
+                                />
+                                <Typography
+                                    variant="h3"
+                                    sx={{
+                                        color: 'white',
+                                        fontWeight: 800,
+                                        fontSize: { xs: '2rem', md: '3rem' },
+                                        lineHeight: 1.2,
+                                        mb: 1,
+                                        textShadow: '0 2px 10px rgba(0,0,0,0.3)'
+                                    }}
+                                >
+                                    {guide.title}
                                 </Typography>
+
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, color: 'rgba(255,255,255,0.9)' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                        <LocationOn sx={{ mr: 0.5, fontSize: 18, color: '#ff5f5fff' }} />
+                                        <Typography variant="body1" fontWeight="medium" sx={{ color: 'white' }}>
+                                            {guide.location?.city}, {guide.location?.country}
+                                        </Typography>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                        <Rating value={guide.averageRating || 0} precision={0.1} readOnly size="small" />
+                                        <Typography variant="body2" sx={{ ml: 1, fontWeight: 'medium', color: 'white' }}>
+                                            ({guide.reviews?.length || 0})
+                                        </Typography>
+                                    </Box>
+                                </Box>
                             </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Rating value={guide.averageRating || 0} precision={0.1} readOnly size="small" />
-                                <Typography sx={{ ml: 1 }}>({guide.reviews?.length || 0} reviews)</Typography>
+
+                            {/* Right Side: Actions */}
+                            <Box sx={{ display: 'flex', gap: 1.5 }}>
+                                <Button
+                                    variant="contained"
+                                    color={isSaved ? 'success' : 'secondary'}
+                                    startIcon={isSaved ? <Bookmark /> : <BookmarkBorder />}
+                                    onClick={handleSave}
+                                    sx={{ borderRadius: 6, px: 3, fontWeight: 'bold' }}
+                                >
+                                    {isSaved ? 'Saved' : 'Save'}
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(window.location.href);
+                                        alert('Link copied!');
+                                    }}
+                                    sx={{
+                                        color: 'white',
+                                        borderColor: 'rgba(255,255,255,0.3)',
+                                        minWidth: 0,
+                                        px: 2,
+                                        borderRadius: 6,
+                                        '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' }
+                                    }}
+                                >
+                                    <Share />
+                                </Button>
+                                {isAuthenticated && myGroups.length > 0 && (
+                                    <Button
+                                        variant="outlined"
+                                        onClick={() => setShowShareDialog(true)}
+                                        sx={{
+                                            color: 'white',
+                                            borderColor: 'rgba(255,255,255,0.3)',
+                                            minWidth: 0,
+                                            px: 2,
+                                            borderRadius: 6,
+                                            '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' }
+                                        }}
+                                    >
+                                        <Groups />
+                                    </Button>
+                                )}
                             </Box>
                         </Box>
-                    </Box>
-                </Container>
-            </Box>
-
-            {/* Action Bar */}
-            <Box sx={{ bgcolor: 'background.paper', py: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-                <Container maxWidth="lg">
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                        <Button
-                            variant={isSaved ? 'contained' : 'outlined'}
-                            startIcon={isSaved ? <Bookmark /> : <BookmarkBorder />}
-                            onClick={handleSave}
-                        >
-                            {isSaved ? 'Saved' : 'Save Guide'}
-                        </Button>
-                        <Tooltip title="Copy link">
-                            <IconButton onClick={() => {
-                                navigator.clipboard.writeText(window.location.href);
-                                alert('Link copied!');
-                            }}>
-                                <Share />
-                            </IconButton>
-                        </Tooltip>
-                        {isAuthenticated && myGroups.length > 0 && (
-                            <Button
-                                variant="outlined"
-                                startIcon={<Groups />}
-                                onClick={() => setShowShareDialog(true)}
-                            >
-                                Share to Group
-                            </Button>
-                        )}
-                    </Box>
-                </Container>
+                    </Container>
+                </Box>
             </Box>
 
             <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -541,7 +609,7 @@ export default function GuideDetails() {
                     <Grid item xs={12} md={4}>
                         {/* Image Gallery */}
                         {guide.images?.length > 1 && (
-                            <Card sx={{ mb: 3 }}>
+                            <Card sx={{ mb: 3, borderRadius: 1 }}>
                                 <CardContent>
                                     <Typography variant="h6" fontWeight="bold" gutterBottom>
                                         Photo Gallery
@@ -561,7 +629,7 @@ export default function GuideDetails() {
                                                         width: '100%',
                                                         height: 100,
                                                         objectFit: 'cover',
-                                                        borderRadius: 1,
+                                                        borderRadius: 0.5,
                                                         cursor: 'pointer',
                                                         '&:hover': { opacity: 0.9 }
                                                     }}
@@ -582,7 +650,7 @@ export default function GuideDetails() {
                                 <List dense>
                                     {quickFacts.map((fact, index) => (
                                         <ListItem key={index}>
-                                            <ListItemIcon>{fact.icon}</ListItemIcon>
+                                            <ListItemIcon sx={{ color: 'action' }}>{fact.icon}</ListItemIcon>
                                             <ListItemText
                                                 primary={fact.label}
                                                 secondary={fact.value}

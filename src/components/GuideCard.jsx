@@ -50,13 +50,13 @@ export default function GuideCard({ guide, onSaveToggle }) {
 
     const getCategoryColor = (category) => {
         const colors = {
-            Adventure: 'error',
-            Leisure: 'success',
-            Cultural: 'warning',
-            Nature: 'info',
-            Urban: 'secondary',
+            Adventure: 'warning', // Lime Yellow
+            Leisure: 'error', // Pink
+            Cultural: 'info', // Sky Blue
+            Nature: 'success', // Light Green
+            Urban: 'secondary', // Coral
         };
-        return colors[category] || 'default';
+        return colors[category] || 'primary';
     };
 
     return (
@@ -70,12 +70,12 @@ export default function GuideCard({ guide, onSaveToggle }) {
                 // Reset torn paper styles for destination cards
                 clipPath: 'none',
                 filter: 'none',
-                borderRadius: 2,
-                boxShadow: '1px 1px 3px rgba(0,0,0,0.05), 4px 4px 0px rgba(74, 93, 79, 0.1)',
+                borderRadius: 1,
+                boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
                 transition: 'transform 0.3s ease, box-shadow 0.3s ease',
                 '&:hover': {
                     transform: 'translateY(-4px)',
-                    boxShadow: '2px 2px 6px rgba(0,0,0,0.1), 6px 6px 0px rgba(74, 93, 79, 0.15)',
+                    boxShadow: '0 8px 30px rgba(0,0,0,0.1)',
                     filter: 'none',
                 }
             }}
