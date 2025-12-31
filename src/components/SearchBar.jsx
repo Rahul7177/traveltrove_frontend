@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Paper,
@@ -14,38 +14,80 @@ import {
     Typography,
     ClickAwayListener,
     Fade,
+    CircularProgress,
 } from '@mui/material';
 import { Search as SearchIcon, LocationOn } from '@mui/icons-material';
+import { guidesAPI } from '../services/api';
 
-// Demo data for suggestions (Simulating rich search results)
-const FEATURED_DESTINATIONS = [
-    { title: 'Bali, Indonesia', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=100&q=80' },
-    { title: 'Paris, France', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=100&q=80' },
-    { title: 'Kyoto, Japan', image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=100&q=80' },
-    { title: 'Santorini, Greece', image: 'https://images.unsplash.com/photo-1613395877344-13d4c2ce5d4d?auto=format&fit=crop&w=100&q=80' },
-    { title: 'New York City, USA', image: 'https://images.unsplash.com/photo-1496442226666-8d4a0e94f92c?auto=format&fit=crop&w=100&q=80' },
-    { title: 'Machu Picchu, Peru', image: 'https://images.unsplash.com/photo-1526392060635-9d6019884377?auto=format&fit=crop&w=100&q=80' },
-];
+// Debounce helper function
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
 
 export default function SearchBar({ large = false, placeholder = "Search destinations..." }) {
     const [query, setQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const inputRef = useRef(null);
 
+    // Fetch suggestions from database
+    const fetchSuggestions = async (searchQuery) => {
+        if (searchQuery.trim().length < 1) {
+            setSuggestions([]);
+            setShowSuggestions(false);
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await guidesAPI.searchSuggestions(searchQuery, 6);
+            const guides = response.data;
+
+            // Transform guides to suggestion format
+            const formattedSuggestions = guides.map(guide => ({
+                id: guide._id,
+                title: guide.title,
+                location: guide.location?.city
+                    ? `${guide.location.city}${guide.location.country ? ', ' + guide.location.country : ''}`
+                    : guide.location?.country || '',
+                image: guide.images?.[0] || null,
+                category: guide.category,
+            }));
+
+            setSuggestions(formattedSuggestions);
+            setShowSuggestions(formattedSuggestions.length > 0);
+        } catch (error) {
+            console.error('Error fetching suggestions:', error);
+            setSuggestions([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Debounced version of fetchSuggestions (300ms delay)
+    const debouncedFetchSuggestions = useCallback(
+        debounce((searchQuery) => fetchSuggestions(searchQuery), 300),
+        []
+    );
+
     useEffect(() => {
-        if (query.trim().length > 0) {
-            const filtered = FEATURED_DESTINATIONS.filter(item =>
-                item.title.toLowerCase().includes(query.toLowerCase())
-            );
-            setSuggestions(filtered);
-            setShowSuggestions(true);
+        if (query.trim().length >= 1) {
+            debouncedFetchSuggestions(query);
         } else {
             setSuggestions([]);
             setShowSuggestions(false);
         }
-    }, [query]);
+    }, [query, debouncedFetchSuggestions]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -55,9 +97,11 @@ export default function SearchBar({ large = false, placeholder = "Search destina
         }
     };
 
-    const handleSuggestionClick = (title) => {
-        setQuery(title);
-        navigate(`/search?q=${encodeURIComponent(title)}`);
+    const handleSuggestionClick = (suggestion) => {
+        // Use the title for search
+        const searchTerm = suggestion.title;
+        setQuery(searchTerm);
+        navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
         setShowSuggestions(false);
     };
 
@@ -90,13 +134,13 @@ export default function SearchBar({ large = false, placeholder = "Search destina
                         },
                     }}
                 >
-                    <SearchIcon sx={{ color: large ? 'white' : 'text.secondary', mr: 1, opacity: 0.8 }} />
+                    {/* <SearchIcon sx={{ color: large ? 'white' : 'text.secondary', mr: 1, opacity: 0.8 }} /> */}
                     <InputBase
                         inputRef={inputRef}
                         placeholder={placeholder}
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        onFocus={() => { if (query) setShowSuggestions(true); }}
+                        onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
                         sx={{
                             flex: 1,
                             fontSize: large ? '1.1rem' : '1rem',
@@ -109,6 +153,9 @@ export default function SearchBar({ large = false, placeholder = "Search destina
                         }}
                         inputProps={{ 'aria-label': 'search destinations', autoComplete: 'off' }}
                     />
+                    {loading ? (
+                        <CircularProgress size={20} sx={{ mr: 1, color: large ? 'white' : 'primary.main' }} />
+                    ) : null}
                     <IconButton
                         type="submit"
                         sx={{
@@ -131,8 +178,8 @@ export default function SearchBar({ large = false, placeholder = "Search destina
                             left: 0,
                             right: 0,
                             mt: 1,
-                            zIndex: 10,
-                            borderRadius: 4,
+                            zIndex: 1000,
+                            borderRadius: 1,
                             overflow: 'hidden',
                             boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
                             bgcolor: large ? 'rgba(255, 255, 255, 0.95)' : 'background.paper',
@@ -142,9 +189,9 @@ export default function SearchBar({ large = false, placeholder = "Search destina
                         <List disablePadding>
                             {suggestions.map((item, index) => (
                                 <ListItem
-                                    key={index}
+                                    key={item.id || index}
                                     button
-                                    onClick={() => handleSuggestionClick(item.title)}
+                                    onClick={() => handleSuggestionClick(item)}
                                     sx={{
                                         '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' },
                                         borderBottom: index < suggestions.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none'
@@ -165,16 +212,11 @@ export default function SearchBar({ large = false, placeholder = "Search destina
                                                 {item.title}
                                             </Typography>
                                         }
-                                        secondary="Popular Destination"
+                                        secondary={item.location || item.category || 'Destination'}
                                     />
                                 </ListItem>
                             ))}
                         </List>
-                        {suggestions.length === 0 && query && (
-                            <Box sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
-                                No suggestions found
-                            </Box>
-                        )}
                     </Paper>
                 </Fade>
             </Box>

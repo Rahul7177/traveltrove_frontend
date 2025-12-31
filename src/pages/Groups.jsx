@@ -17,6 +17,14 @@ import {
     DialogContent,
     DialogActions,
     TextField,
+    Badge,
+    List,
+    ListItem,
+    ListItemAvatar,
+    ListItemText,
+    Avatar,
+    IconButton,
+    Divider,
 } from '@mui/material';
 import {
     Add,
@@ -24,6 +32,10 @@ import {
     Lock,
     People,
     VpnKey,
+    Mail,
+    Check,
+    Close,
+    Groups as GroupsIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { groupsAPI } from '../services/api';
@@ -40,6 +52,11 @@ export default function Groups() {
     const [joinError, setJoinError] = useState('');
     const [joining, setJoining] = useState(false);
 
+    // Invites state
+    const [invites, setInvites] = useState([]);
+    const [showInvitesDialog, setShowInvitesDialog] = useState(false);
+    const [processingInvite, setProcessingInvite] = useState(null);
+
     useEffect(() => {
         const fetchGroups = async () => {
             try {
@@ -47,8 +64,12 @@ export default function Groups() {
                 setAllGroups(allRes.data);
 
                 if (isAuthenticated) {
-                    const myRes = await groupsAPI.getMy();
+                    const [myRes, invitesRes] = await Promise.all([
+                        groupsAPI.getMy(),
+                        groupsAPI.getMyInvites(),
+                    ]);
                     setMyGroups(myRes.data);
+                    setInvites(invitesRes.data || []);
                 }
             } catch (error) {
                 console.error('Error fetching groups:', error);
@@ -117,9 +138,52 @@ export default function Groups() {
         setJoining(false);
     };
 
+    const handleAcceptInvite = async (groupId) => {
+        setProcessingInvite(groupId);
+        try {
+            await groupsAPI.acceptInvite(groupId);
+
+            // Refresh data
+            const [allRes, myRes, invitesRes] = await Promise.all([
+                groupsAPI.getAllIncludingPrivate(),
+                groupsAPI.getMy(),
+                groupsAPI.getMyInvites(),
+            ]);
+            setAllGroups(allRes.data);
+            setMyGroups(myRes.data);
+            setInvites(invitesRes.data || []);
+
+            // Navigate to group
+            navigate(`/groups/${groupId}`);
+        } catch (err) {
+            console.error('Error accepting invite:', err);
+            alert(err.response?.data?.message || 'Failed to accept invite');
+        }
+        setProcessingInvite(null);
+    };
+
+    const handleRejectInvite = async (groupId) => {
+        setProcessingInvite(groupId);
+        try {
+            await groupsAPI.rejectInvite(groupId);
+
+            // Refresh invites
+            const invitesRes = await groupsAPI.getMyInvites();
+            setInvites(invitesRes.data || []);
+        } catch (err) {
+            console.error('Error rejecting invite:', err);
+            alert(err.response?.data?.message || 'Failed to reject invite');
+        }
+        setProcessingInvite(null);
+    };
+
     // Filter out groups user is already a member of from discover section
-    const myGroupIds = myGroups.map(g => g._id);
-    const discoverGroups = allGroups.filter(g => !myGroupIds.includes(g._id));
+    // Convert IDs to strings for proper comparison
+    const myGroupIds = myGroups.map(g => g._id?.toString() || g._id);
+    const discoverGroups = allGroups.filter(g => {
+        const groupId = g._id?.toString() || g._id;
+        return !myGroupIds.includes(groupId);
+    });
 
     if (loading) {
         return (
@@ -140,13 +204,26 @@ export default function Groups() {
                         Connect with fellow travelers and share your adventures
                     </Typography>
                 </Box>
-                <Button
-                    onClick={handleCreateGroup}
-                    variant="contained"
-                    startIcon={<Add />}
-                >
-                    Create Group
-                </Button>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                    {isAuthenticated && (
+                        <Badge badgeContent={invites.length} color="error">
+                            <Button
+                                onClick={() => setShowInvitesDialog(true)}
+                                variant="outlined"
+                                startIcon={<Mail />}
+                            >
+                                Invites
+                            </Button>
+                        </Badge>
+                    )}
+                    <Button
+                        onClick={handleCreateGroup}
+                        variant="contained"
+                        startIcon={<Add />}
+                    >
+                        Create Group
+                    </Button>
+                </Box>
             </Box>
 
             {/* My Groups */}
@@ -326,6 +403,82 @@ export default function Groups() {
                         startIcon={joining ? <CircularProgress size={16} /> : <VpnKey />}
                     >
                         {joining ? 'Joining...' : 'Join Group'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Invites Dialog */}
+            <Dialog open={showInvitesDialog} onClose={() => setShowInvitesDialog(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Mail />
+                        Group Invites
+                        {invites.length > 0 && (
+                            <Chip label={invites.length} color="error" size="small" />
+                        )}
+                    </Box>
+                </DialogTitle>
+                <DialogContent>
+                    {invites.length === 0 ? (
+                        <Box sx={{ py: 4, textAlign: 'center' }}>
+                            <GroupsIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                            <Typography color="text.secondary">
+                                You don't have any pending invites
+                            </Typography>
+                        </Box>
+                    ) : (
+                        <List>
+                            {invites.map((invite, index) => (
+                                <Box key={invite.group?._id || index}>
+                                    <ListItem
+                                        secondaryAction={
+                                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                                <IconButton
+                                                    color="success"
+                                                    onClick={() => handleAcceptInvite(invite.group._id)}
+                                                    disabled={processingInvite === invite.group._id}
+                                                >
+                                                    {processingInvite === invite.group._id ? (
+                                                        <CircularProgress size={20} />
+                                                    ) : (
+                                                        <Check />
+                                                    )}
+                                                </IconButton>
+                                                <IconButton
+                                                    color="error"
+                                                    onClick={() => handleRejectInvite(invite.group._id)}
+                                                    disabled={processingInvite === invite.group._id}
+                                                >
+                                                    <Close />
+                                                </IconButton>
+                                            </Box>
+                                        }
+                                    >
+                                        <ListItemAvatar>
+                                            <Avatar sx={{ bgcolor: invite.group?.private ? 'warning.main' : 'success.main' }}>
+                                                {invite.group?.private ? <Lock /> : <Public />}
+                                            </Avatar>
+                                        </ListItemAvatar>
+                                        <ListItemText
+                                            primary={invite.group?.name || 'Unknown Group'}
+                                            secondary={
+                                                <>
+                                                    Invited by {invite.invitedBy?.username || 'Unknown'}
+                                                    <br />
+                                                    {invite.group?.members?.length || 0} members
+                                                </>
+                                            }
+                                        />
+                                    </ListItem>
+                                    {index < invites.length - 1 && <Divider />}
+                                </Box>
+                            ))}
+                        </List>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setShowInvitesDialog(false)}>
+                        Close
                     </Button>
                 </DialogActions>
             </Dialog>

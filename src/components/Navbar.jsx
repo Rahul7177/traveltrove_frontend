@@ -350,6 +350,10 @@ export default function Navbar() {
                                                 </Typography>
                                             </MenuItem>
                                             <Divider />
+                                            <MenuItem component={RouterLink} to="/profile" onClick={handleClose}>
+                                                <AccountCircle sx={{ mr: 1, color: 'text.secondary' }} fontSize="small" />
+                                                My Profile
+                                            </MenuItem>
                                             <MenuItem component={RouterLink} to="/dashboard" onClick={handleClose}>
                                                 <Dashboard sx={{ mr: 1, color: 'text.secondary' }} fontSize="small" />
                                                 Dashboard

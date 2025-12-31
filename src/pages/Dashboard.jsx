@@ -98,7 +98,7 @@ export default function Dashboard() {
     return (
         <Container maxWidth="lg" sx={{ py: 4 }}>
             {/* Profile Header */}
-            <Paper sx={{ p: 4, mb: 4, background: 'linear-gradient(135deg, #4A5D4F 0%, #2C3630 100%)', color: '#F9F7F2' }}>
+            <Paper sx={{ p: 4, mb: 4, background: 'linear-gradient(135deg, #ff5858 0%, #87CEEB 100%)', color: '#F9F7F2' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                     <Avatar
                         src={user?.profilePicture}

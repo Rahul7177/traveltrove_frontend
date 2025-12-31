@@ -20,6 +20,7 @@ import GroupDetails from './pages/GroupDetails';
 import CreateGroup from './pages/CreateGroup';
 import AdminDashboard from './pages/AdminDashboard';
 import ItinerariesList from './pages/ItinerariesList';
+import MyProfile from './pages/MyProfile';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, adminOnly = false }) => {
@@ -62,6 +63,14 @@ function App() {
                     <Route path="/groups/:id" element={<GroupDetails />} />
 
                     {/* Protected routes */}
+                    <Route
+                        path="/profile"
+                        element={
+                            <ProtectedRoute>
+                                <MyProfile />
+                            </ProtectedRoute>
+                        }
+                    />
                     <Route
                         path="/dashboard"
                         element={

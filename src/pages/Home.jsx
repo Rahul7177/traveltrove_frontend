@@ -71,7 +71,6 @@ export default function Home() {
                     alignItems: 'center',
                     px: { xs: 1, sm: 2 },
                     py: { xs: 2, sm: 4 },
-                    overflow: 'hidden',
                 }}
             >
                 {/* Video Background */}

@@ -38,6 +38,10 @@ import {
     ExitToApp,
     Delete,
     Edit,
+    Share,
+    Reply,
+    ExpandMore,
+    ExpandLess,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { groupsAPI } from '../services/api';
@@ -58,6 +62,19 @@ export default function GroupDetails() {
     const [showMembersDialog, setShowMembersDialog] = useState(false);
     const [inviteInput, setInviteInput] = useState('');
     const [editForm, setEditForm] = useState({ name: '', description: '', private: false });
+
+    // Email invite state
+    const [showEmailInviteDialog, setShowEmailInviteDialog] = useState(false);
+    const [emailToInvite, setEmailToInvite] = useState('');
+    const [sendingInvite, setSendingInvite] = useState(false);
+    const [inviteError, setInviteError] = useState('');
+    const [inviteSuccess, setInviteSuccess] = useState('');
+
+    // Reply state
+    const [replyingTo, setReplyingTo] = useState(null);
+    const [replyContent, setReplyContent] = useState('');
+    const [replying, setReplying] = useState(false);
+    const [expandedReplies, setExpandedReplies] = useState({});
 
     const isMember = group?.members?.some(m => m._id === user?._id);
     const isCreator = group?.creator?._id === user?._id;
@@ -167,6 +184,58 @@ export default function GroupDetails() {
         }
     };
 
+    const handleSendEmailInvite = async () => {
+        if (!emailToInvite.trim()) {
+            setInviteError('Please enter an email address');
+            return;
+        }
+
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(emailToInvite)) {
+            setInviteError('Please enter a valid email address');
+            return;
+        }
+
+        setSendingInvite(true);
+        setInviteError('');
+        setInviteSuccess('');
+
+        try {
+            const response = await groupsAPI.sendInvite(id, emailToInvite.trim());
+            setInviteSuccess(response.data.message || 'Invite sent successfully!');
+            setEmailToInvite('');
+        } catch (err) {
+            setInviteError(err.response?.data?.message || 'Failed to send invite');
+        }
+        setSendingInvite(false);
+    };
+
+    const handleReply = async (postId) => {
+        if (!replyContent.trim()) return;
+
+        setReplying(true);
+        try {
+            await groupsAPI.replyToPost(id, postId, replyContent.trim());
+            const response = await groupsAPI.getById(id);
+            setGroup(response.data);
+            setReplyContent('');
+            setReplyingTo(null);
+            // Auto-expand replies after posting
+            setExpandedReplies(prev => ({ ...prev, [postId]: true }));
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to reply');
+        }
+        setReplying(false);
+    };
+
+    const toggleReplies = (postId) => {
+        setExpandedReplies(prev => ({
+            ...prev,
+            [postId]: !prev[postId]
+        }));
+    };
+
     const formatDate = (date) => {
         return new Date(date).toLocaleString('en-US', {
             month: 'short',
@@ -244,13 +313,28 @@ export default function GroupDetails() {
                                             Edit
                                         </Button>
                                         {group.private && (
-                                            <Button
-                                                variant="outlined"
-                                                onClick={handleGetInviteCode}
-                                                startIcon={<ContentCopy />}
-                                            >
-                                                Invite Code
-                                            </Button>
+                                            <>
+                                                <Button
+                                                    variant="outlined"
+                                                    onClick={handleGetInviteCode}
+                                                    startIcon={<ContentCopy />}
+                                                >
+                                                    Invite Code
+                                                </Button>
+                                                <Button
+                                                    variant="outlined"
+                                                    color="primary"
+                                                    onClick={() => {
+                                                        setShowEmailInviteDialog(true);
+                                                        setEmailToInvite('');
+                                                        setInviteError('');
+                                                        setInviteSuccess('');
+                                                    }}
+                                                    startIcon={<Share />}
+                                                >
+                                                    Invite by Email
+                                                </Button>
+                                            </>
                                         )}
                                         <Button
                                             variant="outlined"
@@ -367,40 +451,139 @@ export default function GroupDetails() {
                 </Alert>
             )}
 
-            {/* Posts List */}
-            {group.posts?.length > 0 ? (
-                <List>
-                    {[...group.posts].reverse().map((post, index) => (
-                        <Box key={index}>
-                            <ListItem alignItems="flex-start">
-                                <ListItemAvatar>
-                                    <Avatar src={post.author?.profilePicture}>
-                                        {post.author?.username?.charAt(0).toUpperCase()}
-                                    </Avatar>
-                                </ListItemAvatar>
-                                <ListItemText
-                                    primary={
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <Typography fontWeight="medium">
+            {/* Posts List - Chat Style */}
+            <Paper sx={{
+                maxHeight: '500px',
+                overflowY: 'auto',
+                background: 'linear-gradient(135deg, #ff5858 0%, #87CEEB 100%)',
+                p: 2,
+                borderRadius: 2,
+                mb: 4,
+                width: '75%',
+            }}>
+                {group.posts?.length > 0 ? (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        {[...group.posts].reverse().map((post) => (
+                            <Box key={post._id} sx={{ display: 'flex', gap: 2 }}>
+                                <Avatar
+                                    src={post.author?.profilePicture}
+                                    sx={{ width: 40, height: 40, mt: 0.5 }}
+                                >
+                                    {post.author?.username?.charAt(0).toUpperCase()}
+                                </Avatar>
+                                <Box sx={{ flex: 1 }}>
+                                    {/* Main message bubble */}
+                                    <Paper sx={{
+                                        p: 2,
+                                        bgcolor: 'white',
+                                        borderRadius: 2,
+                                        boxShadow: 1
+                                    }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                            <Typography fontWeight="bold" color="primary">
                                                 {post.author?.username}
                                             </Typography>
                                             <Typography variant="caption" color="text.secondary">
                                                 {formatDate(post.timestamp)}
                                             </Typography>
                                         </Box>
-                                    }
-                                    secondary={post.content}
-                                />
-                            </ListItem>
-                            {index < group.posts.length - 1 && <Divider variant="inset" component="li" />}
-                        </Box>
-                    ))}
-                </List>
-            ) : (
-                <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-                    No posts yet. Be the first to share something!
-                </Typography>
-            )}
+                                        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                                            {post.content}
+                                        </Typography>
+
+                                        {/* Action buttons */}
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1.5, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+                                            {isMember && (
+                                                <Button
+                                                    size="small"
+                                                    startIcon={<Reply />}
+                                                    onClick={() => {
+                                                        setReplyingTo(replyingTo === post._id ? null : post._id);
+                                                        setReplyContent('');
+                                                    }}
+                                                    color={replyingTo === post._id ? 'primary' : 'inherit'}
+                                                >
+                                                    Reply
+                                                </Button>
+                                            )}
+                                            {post.replies?.length > 0 && (
+                                                <Button
+                                                    size="small"
+                                                    onClick={() => toggleReplies(post._id)}
+                                                    endIcon={expandedReplies[post._id] ? <ExpandLess /> : <ExpandMore />}
+                                                    color="inherit"
+                                                >
+                                                    {post.replies.length} {post.replies.length === 1 ? 'Reply' : 'Replies'}
+                                                </Button>
+                                            )}
+                                        </Box>
+                                    </Paper>
+
+                                    {/* Reply input */}
+                                    {replyingTo === post._id && (
+                                        <Box sx={{ display: 'flex', gap: 1, mt: 1.5, pl: 2 }}>
+                                            <TextField
+                                                fullWidth
+                                                size="small"
+                                                placeholder="Write a reply..."
+                                                value={replyContent}
+                                                onChange={(e) => setReplyContent(e.target.value)}
+                                                disabled={replying}
+                                                onKeyPress={(e) => {
+                                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                                        e.preventDefault();
+                                                        handleReply(post._id);
+                                                    }
+                                                }}
+                                            />
+                                            <IconButton
+                                                color="primary"
+                                                onClick={() => handleReply(post._id)}
+                                                disabled={!replyContent.trim() || replying}
+                                            >
+                                                {replying ? <CircularProgress size={20} /> : <Send />}
+                                            </IconButton>
+                                        </Box>
+                                    )}
+
+                                    {/* Replies thread */}
+                                    {expandedReplies[post._id] && post.replies?.length > 0 && (
+                                        <Box sx={{ mt: 1.5, pl: 2, borderLeft: '2px solid', borderColor: 'primary.main' }}>
+                                            {post.replies.map((reply, replyIndex) => (
+                                                <Box key={replyIndex} sx={{ display: 'flex', gap: 1.5, mb: 1.5 }}>
+                                                    <Avatar
+                                                        src={reply.author?.profilePicture}
+                                                        sx={{ width: 28, height: 28 }}
+                                                    >
+                                                        {reply.author?.username?.charAt(0).toUpperCase()}
+                                                    </Avatar>
+                                                    <Paper sx={{ p: 1.5, bgcolor: 'primary.50', borderRadius: 1.5, flex: 1 }}>
+                                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                                                            <Typography variant="body2" fontWeight="bold" color="primary.dark">
+                                                                {reply.author?.username}
+                                                            </Typography>
+                                                            <Typography variant="caption" color="text.secondary">
+                                                                {formatDate(reply.timestamp)}
+                                                            </Typography>
+                                                        </Box>
+                                                        <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                                                            {reply.content}
+                                                        </Typography>
+                                                    </Paper>
+                                                </Box>
+                                            ))}
+                                        </Box>
+                                    )}
+                                </Box>
+                            </Box>
+                        ))}
+                    </Box>
+                ) : (
+                    <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+                        No posts yet. Be the first to share something!
+                    </Typography>
+                )}
+            </Paper>
 
             {/* Invite Code Dialog */}
             <Dialog open={showInviteDialog} onClose={() => setShowInviteDialog(false)}>
@@ -485,6 +668,67 @@ export default function GroupDetails() {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setShowMembersDialog(false)}>Close</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Email Invite Dialog */}
+            <Dialog open={showEmailInviteDialog} onClose={() => setShowEmailInviteDialog(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Share />
+                        Invite by Email
+                    </Box>
+                </DialogTitle>
+                <DialogContent>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        Send an invitation to join <strong>"{group?.name}"</strong> to a registered user by their email address.
+                    </Typography>
+
+                    {inviteError && (
+                        <Alert severity="error" sx={{ mb: 2 }}>
+                            {inviteError}
+                        </Alert>
+                    )}
+
+                    {inviteSuccess && (
+                        <Alert severity="success" sx={{ mb: 2 }}>
+                            {inviteSuccess}
+                        </Alert>
+                    )}
+
+                    <TextField
+                        fullWidth
+                        label="Email Address"
+                        placeholder="Enter user's email"
+                        type="email"
+                        value={emailToInvite}
+                        onChange={(e) => setEmailToInvite(e.target.value)}
+                        sx={{ mt: 1 }}
+                        autoFocus
+                        disabled={sendingInvite}
+                        onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                                handleSendEmailInvite();
+                            }
+                        }}
+                    />
+
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                        Note: The user must have a registered account with this email address.
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setShowEmailInviteDialog(false)} disabled={sendingInvite}>
+                        Close
+                    </Button>
+                    <Button
+                        onClick={handleSendEmailInvite}
+                        variant="contained"
+                        disabled={!emailToInvite.trim() || sendingInvite}
+                        startIcon={sendingInvite ? <CircularProgress size={16} /> : <Send />}
+                    >
+                        {sendingInvite ? 'Sending...' : 'Send Invite'}
+                    </Button>
                 </DialogActions>
             </Dialog>
         </Container>

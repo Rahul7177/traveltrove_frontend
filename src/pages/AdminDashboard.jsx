@@ -223,7 +223,7 @@ export default function AdminDashboard() {
             {/* Stats Cards */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
                 <Grid item xs={6} md={3}>
-                    <Card sx={{ bgcolor: 'primary.main', color: 'white' }}>
+                    <Card sx={{ bgcolor: 'info.main', color: 'white' }}>
                         <CardContent sx={{ textAlign: 'center' }}>
                             <Explore sx={{ fontSize: 40, mb: 1 }} />
                             <Typography variant="h4" fontWeight="bold">{stats.guides || 0}</Typography>
